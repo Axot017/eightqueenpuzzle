@@ -1,11 +1,15 @@
+import 'dart:math';
+
 import 'package:eightqueenspuzzle/calculate_queens_position.dart';
 import 'package:eightqueenspuzzle/field_state.dart';
+import 'package:eightqueenspuzzle/queen_position.dart';
 import 'package:flutter/material.dart';
 
 class Board extends StatefulWidget {
   final int size;
+  final void Function(List<QueenPosition>) onQueenSelected;
 
-  Board(this.size, {Key key}): super(key: key);
+  Board(this.size, this.onQueenSelected, {Key key}): super(key: key);
 
   @override
   State<StatefulWidget> createState() => BoardState();
@@ -13,6 +17,7 @@ class Board extends StatefulWidget {
 
 class BoardState extends State<Board> {
   List<List<FieldState>> fields = [];
+  Random _random = Random();
 
   double get itemSize => MediaQuery.of(context).size.width / widget.size;
 
@@ -38,22 +43,20 @@ class BoardState extends State<Board> {
         return Row(
           children: List<Widget>.generate(widget.size, (index) {
             bool isWhite = isFirstWhite ? index % 2 == 0 : index % 2 == 1;
-            return getField(fields[rowIndex][index], isWhite ? Colors.orangeAccent.withOpacity(0.5) : Colors.brown);
+            return getField(isWhite ? Colors.orangeAccent.withOpacity(0.5) : Colors.brown);
           }),
         );
       }),
     );
   }
 
-  Widget getField(FieldState state, Color color) => Container(
+
+
+  Widget getField(Color color) => Container(
     height: itemSize,
     width: itemSize,
     alignment: Alignment.center,
     color: color,
-    child: state.hasQueen ? Image.asset('assets/images/queen.png',
-      width: itemSize * 0.7,
-      height: itemSize * 0.7,
-    ) : Container(),
   );
 
   initBoard() {
@@ -62,6 +65,16 @@ class BoardState extends State<Board> {
       setState(() {
         fields = result;
       });
+      List<QueenPosition> queens = [];
+      for (var i = 0; i < result.length; i++) {
+        for (var j = 0; j < result[i].length; j++) {
+          if (result[i][j].hasQueen) {
+            queens.add(QueenPosition(x: i, y: j));
+          }
+        }
+      }
+      queens.shuffle(_random);
+      widget.onQueenSelected(queens);
     });
   }
 }
